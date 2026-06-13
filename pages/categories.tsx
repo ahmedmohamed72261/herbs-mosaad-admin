@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import Modal from '@/components/Modal';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { Button, Input } from '@/components';
 import { useAppStore } from '@/store';
 import { translations } from '@/lib/translations';
 import api, { getAssetUrl } from '@/lib/api';
 import toast from 'react-hot-toast';
-import { FiPlus, FiEdit, FiTrash2, FiSearch, FiSave } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiSearch, FiRefreshCw } from 'react-icons/fi';
 
 interface Category {
   _id: string;
@@ -37,6 +38,7 @@ const Categories = () => {
   
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
 
   // Modal & Form State
@@ -55,8 +57,12 @@ const Categories = () => {
     fetchCategories();
   }, []);
 
-  const fetchCategories = async () => {
-    setLoading(true);
+  const fetchCategories = async (silent = false) => {
+    if (silent) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     try {
       const response = await api.get('/admin/categories');
       setCategories(response.data.data || response.data || []);
@@ -64,8 +70,11 @@ const Categories = () => {
       toast.error('Failed to load categories');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+
+  const handleRefresh = () => fetchCategories(true);
 
   const handleFileUpload = async (file: File, type: 'image' | 'document' = 'image') => {
     const formData = new FormData();
@@ -164,25 +173,34 @@ const Categories = () => {
         <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-4 lg:mb-0">
           {t.categories.title}
         </h1>
-        <button 
-          onClick={() => handleOpenModal()}
-          className="flex items-center space-x-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg shadow-md transition-colors"
-        >
-          <FiPlus className="w-5 h-5" />
-          <span>{t.common.add}</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="p-2.5 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 hover:bg-white/60 dark:hover:bg-white/10 rounded-xl transition-all"
+            title="Refresh"
+          >
+            <FiRefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+          </button>
+          <Button
+            onClick={() => handleOpenModal()}
+            leftIcon={<FiPlus className="w-5 h-5" />}
+          >
+            {t.common.add}
+          </Button>
+        </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
-        <div className="p-6 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
-          <div className="relative max-w-md">
-            <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
+      <div className="glass-card p-0 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200/60 dark:border-white/10">
+          <div className="relative">
+            <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+            <Input
               type="text"
               placeholder={t.common.search}
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all shadow-sm"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+              className="pl-12"
             />
           </div>
         </div>
@@ -301,89 +319,48 @@ const Categories = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* English Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t.categories.nameEn} *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.name_en}
-                onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-              />
-            </div>
+            <Input
+              label={`${t.categories.nameEn} *`}
+              required
+              value={formData.name_en}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, name_en: e.target.value })}
+            />
 
-            {/* Arabic Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t.categories.nameAr} *
-              </label>
-              <input
-                type="text"
-                required
-                dir="rtl"
-                value={formData.name_ar}
-                onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-              />
-            </div>
+            <Input
+              label={`${t.categories.nameAr} *`}
+              required
+              dir="rtl"
+              value={formData.name_ar}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, name_ar: e.target.value })}
+            />
 
-            {/* Slug (Auto-generated if empty) */}
-            {/* <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t.categories.slug} (Auto-generated if empty)
-              </label>
-              <input
-                type="text"
-                value={formData.slug}
-                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-              />
-            </div> */}
+            <Input
+              label={t.categories.order}
+              type="number"
+              min="1"
+              required
+              value={formData.order}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, order: parseInt(e.target.value) })}
+            />
 
-            {/* Order */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t.categories.order}
-              </label>
-              <input
-                type="number"
-                min="1"
-                required
-                value={formData.order}
-                onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-              />
-            </div>
+            <Input
+              label={t.categories.descriptionEn}
+              multiline
+              rows={3}
+              value={formData.description_en}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({ ...formData, description_en: e.target.value })}
+              className="custom-scrollbar"
+            />
 
-            {/* English Desc */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t.categories.descriptionEn}
-              </label>
-              <textarea
-                rows={3}
-                value={formData.description_en}
-                onChange={(e) => setFormData({ ...formData, description_en: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all custom-scrollbar"
-              />
-            </div>
-
-            {/* Arabic Desc */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t.categories.descriptionAr}
-              </label>
-              <textarea
-                rows={3}
-                dir="rtl"
-                value={formData.description_ar}
-                onChange={(e) => setFormData({ ...formData, description_ar: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all custom-scrollbar"
-              />
-            </div>
+            <Input
+              label={t.categories.descriptionAr}
+              multiline
+              rows={3}
+              dir="rtl"
+              value={formData.description_ar}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({ ...formData, description_ar: e.target.value })}
+              className="custom-scrollbar"
+            />
 
             {/* Image */}
             <div className="md:col-span-2">
@@ -435,26 +412,13 @@ const Categories = () => {
             </div>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <button
-              type="button"
-              onClick={() => setShowModal(false)}
-              className="px-6 py-3 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors"
-            >
+          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200/60 dark:border-white/10">
+            <Button variant="secondary" type="button" onClick={() => setShowModal(false)}>
               {t.common.cancel}
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex items-center space-x-2 px-6 py-3 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-medium transition-colors disabled:opacity-70"
-            >
-              {saving ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                <FiSave className="w-5 h-5" />
-              )}
-              <span>{saving ? t.common.loading : t.common.save}</span>
-            </button>
+            </Button>
+            <Button type="submit" isLoading={saving}>
+              {saving ? t.common.loading : t.common.save}
+            </Button>
           </div>
         </form>
       </Modal>

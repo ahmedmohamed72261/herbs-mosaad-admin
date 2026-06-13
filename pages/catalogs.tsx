@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import Modal from '@/components/Modal';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { Button, Input, Card, CardBody } from '@/components';
 import { useAppStore } from '@/store';
 import { translations } from '@/lib/translations';
 import api, { getAssetUrl } from '@/lib/api';
 import toast from 'react-hot-toast';
-import { FiPlus, FiEdit, FiTrash2, FiSearch, FiSave } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiSearch, FiRefreshCw } from 'react-icons/fi';
 
 interface Catalog {
   _id: string;
@@ -38,6 +39,7 @@ const Catalogs = () => {
   const t = translations[language];
   const [catalogs, setCatalogs] = useState<Catalog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
 
   // Modal & Form State
@@ -56,8 +58,12 @@ const Catalogs = () => {
     fetchCatalogs();
   }, []);
 
-  const fetchCatalogs = async () => {
-    setLoading(true);
+  const fetchCatalogs = async (silent = false) => {
+    if (silent) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     try {
       const response = await api.get('/admin/catalogs');
       setCatalogs(response.data.data || response.data || []);
@@ -65,8 +71,11 @@ const Catalogs = () => {
       toast.error('Failed to load catalogs');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+
+  const handleRefresh = () => fetchCatalogs(true);
 
   const handleFileUpload = async (file: File, type: 'image' | 'document' = 'image') => {
     const formData = new FormData();
@@ -161,107 +170,119 @@ const Catalogs = () => {
         <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-4 lg:mb-0">
           {t.catalogs.title}
         </h1>
-        <button 
-          onClick={() => handleOpenModal()}
-          className="flex items-center space-x-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg shadow-md transition-colors"
-        >
-          <FiPlus className="w-5 h-5" />
-          <span>{t.common.add}</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="p-2.5 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 hover:bg-white/60 dark:hover:bg-white/10 rounded-xl transition-all"
+            title="Refresh"
+          >
+            <FiRefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+          </button>
+          <Button
+            onClick={() => handleOpenModal()}
+            leftIcon={<FiPlus className="w-5 h-5" />}
+          >
+            {t.common.add}
+          </Button>
+        </div>
       </div>
 
-      <div className="mb-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-        <div className="p-4">
-          <div className="relative max-w-md">
-            <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
+      <div className="glass-card mb-6">
+        <CardBody>
+          <div className="relative">
+            <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+            <Input
               type="text"
               placeholder={t.common.search}
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all shadow-sm"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+              className="pl-12"
             />
           </div>
-        </div>
+        </CardBody>
       </div>
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 animate-pulse">
-              <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-8"></div>
-              <div className="flex space-x-2">
-                <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-                <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-              </div>
+            <div key={i} className="glass-card animate-pulse">
+              <CardBody>
+                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-8"></div>
+                <div className="flex space-x-2">
+                  <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                  <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                </div>
+              </CardBody>
             </div>
           ))}
         </div>
       ) : filteredCatalogs.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-12 text-center">
+        <div className="glass-card p-12 text-center">
           <div className="text-gray-400 mb-4 flex justify-center"><FiSearch className="w-12 h-12" /></div>
           <p className="text-gray-500 dark:text-gray-400 text-lg">{t.common.noData}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCatalogs.map((catalog) => (
-            <div key={catalog._id} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow relative overflow-hidden flex flex-col">
+            <Card key={catalog._id} className="relative overflow-hidden flex flex-col">
               <div className={`absolute top-0 left-0 w-1 h-full ${catalog.is_active ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              
-              {catalog.image && (
-                <div className="mb-4">
-                  <img
-                    src={getAssetUrl(catalog.image) || undefined}
-                    alt={language === 'en' ? catalog.title_en : catalog.title_ar}
-                    className="w-full h-40 object-cover rounded-xl border border-gray-200 dark:border-gray-600"
-                  />
-                </div>
-              )}
-              
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                {language === 'en' ? catalog.title_en : catalog.title_ar}
-              </h3>
-              
-              {catalog.version && (
-                <div className="mb-4">
-                  <span className="inline-block px-3 py-1 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-sm font-semibold rounded-lg">
-                    v{catalog.version}
-                  </span>
-                </div>
-              )}
-              
-              {(catalog.description_en || catalog.description_ar) && (
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-6 line-clamp-2">
-                  {language === 'en' ? catalog.description_en : catalog.description_ar}
-                </p>
-              )}
-              
-              <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100 dark:border-gray-700">
-                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                  catalog.is_active
-                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                    : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                }`}>
-                  {catalog.is_active ? 'Active' : 'Inactive'}
-                </span>
+              <CardBody>
+                {catalog.image && (
+                  <div className="mb-4">
+                    <img
+                      src={getAssetUrl(catalog.image) || undefined}
+                      alt={language === 'en' ? catalog.title_en : catalog.title_ar}
+                      className="w-full h-40 object-cover rounded-xl border border-gray-200/60 dark:border-white/10"
+                    />
+                  </div>
+                )}
                 
-                <div className="flex space-x-2">
-                  <button 
-                    onClick={() => handleOpenModal(catalog)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                  >
-                    <FiEdit className="w-5 h-5" />
-                  </button>
-                  <button 
-                    onClick={() => handleDeleteClick(catalog._id)}
-                    className="p-2 text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                  >
-                    <FiTrash2 className="w-5 h-5" />
-                  </button>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                  {language === 'en' ? catalog.title_en : catalog.title_ar}
+                </h3>
+                
+                {catalog.version && (
+                  <div className="mb-4">
+                    <span className="inline-block px-3 py-1 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-sm font-semibold rounded-lg">
+                      v{catalog.version}
+                    </span>
+                  </div>
+                )}
+                
+                {(catalog.description_en || catalog.description_ar) && (
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-6 line-clamp-2">
+                    {language === 'en' ? catalog.description_en : catalog.description_ar}
+                  </p>
+                )}
+                
+                <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-200/60 dark:border-white/10">
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                    catalog.is_active
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                      : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                  }`}>
+                    {catalog.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                  
+                  <div className="flex space-x-2">
+                    <button 
+                      onClick={() => handleOpenModal(catalog)}
+                      className="p-2 text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                    >
+                      <FiEdit className="w-5 h-5" />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteClick(catalog._id)}
+                      className="p-2 text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                    >
+                      <FiTrash2 className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </CardBody>
+            </Card>
           ))}
         </div>
       )}
@@ -275,89 +296,54 @@ const Catalogs = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* English Title */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t.catalogs.titleEn} *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.title_en}
-                onChange={(e) => setFormData({ ...formData, title_en: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-              />
-            </div>
+            <Input
+              label={`${t.catalogs.titleEn} *`}
+              required
+              value={formData.title_en}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, title_en: e.target.value })}
+            />
 
-            {/* Arabic Title */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t.catalogs.titleAr} *
-              </label>
-              <input
-                type="text"
-                required
-                dir="rtl"
-                value={formData.title_ar}
-                onChange={(e) => setFormData({ ...formData, title_ar: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-              />
-            </div>
+            <Input
+              label={`${t.catalogs.titleAr} *`}
+              required
+              dir="rtl"
+              value={formData.title_ar}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, title_ar: e.target.value })}
+            />
 
-            {/* Version */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t.catalogs.version}
-              </label>
-              <input
-                type="text"
-                value={formData.version}
-                onChange={(e) => setFormData({ ...formData, version: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-              />
-            </div>
+            <Input
+              label={t.catalogs.version}
+              value={formData.version}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, version: e.target.value })}
+            />
 
-            {/* Order */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t.catalogs.order}
-              </label>
-              <input
-                type="number"
-                min="1"
-                required
-                value={formData.order}
-                onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-              />
-            </div>
+            <Input
+              label={t.catalogs.order}
+              type="number"
+              min="1"
+              required
+              value={formData.order}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, order: parseInt(e.target.value) })}
+            />
 
-            {/* English Desc */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t.catalogs.descriptionEn}
-              </label>
-              <textarea
-                rows={3}
-                value={formData.description_en}
-                onChange={(e) => setFormData({ ...formData, description_en: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all custom-scrollbar"
-              />
-            </div>
+            <Input
+              label={t.catalogs.descriptionEn}
+              multiline
+              rows={3}
+              value={formData.description_en}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({ ...formData, description_en: e.target.value })}
+              className="custom-scrollbar"
+            />
 
-            {/* Arabic Desc */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t.catalogs.descriptionAr}
-              </label>
-              <textarea
-                rows={3}
-                dir="rtl"
-                value={formData.description_ar}
-                onChange={(e) => setFormData({ ...formData, description_ar: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all custom-scrollbar"
-              />
-            </div>
+            <Input
+              label={t.catalogs.descriptionAr}
+              multiline
+              rows={3}
+              dir="rtl"
+              value={formData.description_ar}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({ ...formData, description_ar: e.target.value })}
+              className="custom-scrollbar"
+            />
 
             {/* Cover Image */}
             <div className="md:col-span-2">
@@ -442,26 +428,13 @@ const Catalogs = () => {
             </div>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <button
-              type="button"
-              onClick={() => setShowModal(false)}
-              className="px-6 py-3 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors"
-            >
+          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200/60 dark:border-white/10">
+            <Button variant="secondary" type="button" onClick={() => setShowModal(false)}>
               {t.common.cancel}
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex items-center space-x-2 px-6 py-3 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-medium transition-colors disabled:opacity-70"
-            >
-              {saving ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                <FiSave className="w-5 h-5" />
-              )}
-              <span>{saving ? t.common.loading : t.common.save}</span>
-            </button>
+            </Button>
+            <Button type="submit" isLoading={saving}>
+              {saving ? t.common.loading : t.common.save}
+            </Button>
           </div>
         </form>
       </Modal>

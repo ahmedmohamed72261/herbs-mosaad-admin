@@ -6,7 +6,7 @@ import { FadeIn, StaggerGrid, StaggerItem } from '@/components/Motion';
 import { useAppStore } from '@/store';
 import { translations } from '@/lib/translations';
 import api from '@/lib/api';
-import { FiPackage, FiLayers, FiMail, FiAward, FiPlus, FiEdit, FiTrash2, FiCheckCircle } from 'react-icons/fi';
+import { FiPackage, FiLayers, FiMail, FiAward, FiPlus, FiEdit, FiTrash2, FiCheckCircle, FiRefreshCw } from 'react-icons/fi';
 
 interface ActivityItem {
   id: string;
@@ -29,12 +29,18 @@ const Dashboard = () => {
   });
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchStats();
   }, []);
 
-  const fetchStats = async () => {
+  const fetchStats = async (silent = false) => {
+    if (silent) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     try {
       const [productsRes, categoriesRes, messagesRes, certificatesRes] = await Promise.all([
         api.get('/admin/products?limit=5'),
@@ -112,7 +118,6 @@ const Dashboard = () => {
 
       // Sort by time (newest first) and take first 10
       newActivities.sort((a, b) => {
-        // Parse dates properly
         const dateA = a.time !== 'Recently' ? new Date(a.time).getTime() : 0;
         const dateB = b.time !== 'Recently' ? new Date(b.time).getTime() : 0;
         return dateB - dateA;
@@ -130,8 +135,11 @@ const Dashboard = () => {
       setActivities([]);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+
+  const handleRefresh = () => fetchStats(true);
 
   const statsCards = [
     {
@@ -167,14 +175,26 @@ const Dashboard = () => {
   return (
     <Layout title={t.nav.dashboard}>
       <FadeIn className="mb-8">
-        <h1 className="mb-2 text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
-          {t.nav.dashboard}
-        </h1>
-        <p className="text-gray-500 dark:text-gray-400">
-          {language === 'ar'
-            ? 'مرحباً بعودتك! إليك نظرة عامة على لوحة التحكم.'
-            : "Welcome back! Here's your dashboard overview."}
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="mb-2 text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
+              {t.nav.dashboard}
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400">
+              {language === 'ar'
+                ? 'مرحباً بعودتك! إليك نظرة عامة على لوحة التحكم.'
+                : "Welcome back! Here's your dashboard overview."}
+            </p>
+          </div>
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="p-2.5 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 hover:bg-white/60 dark:hover:bg-white/10 rounded-xl transition-all"
+            title="Refresh"
+          >
+            <FiRefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </FadeIn>
 
       {loading ? (

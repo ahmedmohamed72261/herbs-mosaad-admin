@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Layout from '@/components/Layout';
+import { Button, Input } from '@/components';
 import { useAppStore } from '@/store';
 import { translations } from '@/lib/translations';
 import api, { getAssetUrl } from '@/lib/api';
@@ -63,121 +64,98 @@ const Settings = () => {
         </h1>
       </div>
 
-      <div className="max-w-2xl bg-white dark:bg-gray-800 rounded-xl p-8 shadow-md">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-          {t.settings.profile}
-        </h2>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-gray-700 dark:text-gray-300 mb-2">
-              Avatar
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  const result = await handleFileUpload(file);
-                  if (result) {
-                    setFormData({ ...formData, avatar: result.url });
+      <div className="max-w-2xl glass-card">
+        <div className="glass-card-header">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+            {t.settings.profile}
+          </h2>
+        </div>
+        <div className="glass-card-body">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Avatar
+              </label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
+                  const file = (e.target as HTMLInputElement).files?.[0];
+                  if (file) {
+                    const result = await handleFileUpload(file);
+                    if (result) {
+                      setFormData({ ...formData, avatar: result.url });
+                    }
                   }
-                }
-              }}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            />
-            {formData.avatar && (
-              <div className="mt-4">
-                <img
-                  src={getAssetUrl(formData.avatar)}
-                  alt="Avatar Preview"
-                  className="w-24 h-24 object-cover rounded-full border border-gray-200 dark:border-gray-600"
-                />
-              </div>
-            )}
-          </div>
-          <div>
-            <label className="block text-gray-700 dark:text-gray-300 mb-2">
-              {t.settings.name}
-            </label>
-            <input
-              type="text"
+                }}
+              />
+              {formData.avatar && (
+                <div className="mt-4">
+                  <img
+                    src={getAssetUrl(formData.avatar)}
+                    alt="Avatar Preview"
+                    className="w-24 h-24 object-cover rounded-full border border-gray-200/60 dark:border-white/10"
+                  />
+                </div>
+              )}
+            </div>
+
+            <Input
+              label={t.settings.name}
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
             />
-          </div>
 
-          <div>
-            <label className="block text-gray-700 dark:text-gray-300 mb-2">
-              {t.settings.email}
-            </label>
-            <input
+            <Input
+              label={t.settings.email}
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
             />
-          </div>
 
-          <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              {t.settings.password}
-            </h3>
+            <div className="pt-6 border-t border-gray-200/60 dark:border-white/10">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                {t.settings.password}
+              </h3>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-gray-700 dark:text-gray-300 mb-2">
-                  {t.settings.password}
-                </label>
-                <input
+              <div className="space-y-4">
+                <Input
+                  label={t.settings.password}
                   type="password"
                   name="currentPassword"
                   value={formData.currentPassword}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                 />
-              </div>
 
-              <div>
-                <label className="block text-gray-700 dark:text-gray-300 mb-2">
-                  {t.settings.newPassword}
-                </label>
-                <input
+                <Input
+                  label={t.settings.newPassword}
                   type="password"
                   name="newPassword"
                   value={formData.newPassword}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                 />
-              </div>
 
-              <div>
-                <label className="block text-gray-700 dark:text-gray-300 mb-2">
-                  {t.settings.confirmPassword}
-                </label>
-                <input
+                <Input
+                  label={t.settings.confirmPassword}
                   type="password"
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                 />
               </div>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full px-6 py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white font-semibold rounded-lg transition-colors"
-          >
-            {loading ? t.common.loading : t.common.save}
-          </button>
-        </form>
+            <Button
+              type="submit"
+              fullWidth
+              isLoading={loading}
+            >
+              {loading ? t.common.loading : t.common.save}
+            </Button>
+          </form>
+        </div>
       </div>
     </Layout>
   );
