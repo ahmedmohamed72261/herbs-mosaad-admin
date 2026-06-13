@@ -42,7 +42,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           <Button
             className={variantStyles[variant]}
             onClick={onConfirm}
-            loading={isLoading}
+            isLoading={isLoading}
           >
             {confirmText}
           </Button>
