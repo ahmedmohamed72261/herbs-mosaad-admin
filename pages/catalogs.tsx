@@ -212,7 +212,7 @@ const Catalogs = () => {
               {catalog.image && (
                 <div className="mb-4">
                   <img
-                    src={getAssetUrl(catalog.image)}
+                    src={getAssetUrl(catalog.image) || undefined}
                     alt={language === 'en' ? catalog.title_en : catalog.title_ar}
                     className="w-full h-40 object-cover rounded-xl border border-gray-200 dark:border-gray-600"
                   />
@@ -381,7 +381,7 @@ const Catalogs = () => {
               {formData.image && (
                 <div className="mt-4">
                   <img
-                    src={getAssetUrl(formData.image)}
+                    src={getAssetUrl(formData.image) || undefined}
                     alt="Preview"
                     className="w-40 h-40 object-cover rounded-xl border border-gray-200 dark:border-gray-600"
                   />
@@ -411,7 +411,7 @@ const Catalogs = () => {
               {formData.file && (
                 <div className="mt-4">
                   <a
-                    href={getAssetUrl(formData.file)}
+                    href={getAssetUrl(formData.file) || undefined}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary-600 hover:text-primary-700 underline"

@@ -539,7 +539,7 @@ const Products = () => {
               />
               {formData.images && formData.images.length > 0 && (
                 <div className="mt-4 grid grid-cols-4 gap-4">
-                  {formData.images.map((img, index) => (
+                  {formData.images.map((img: string, index: number) => (
                     <div key={index} className="relative">
                       <img
                         src={getAssetUrl(img)}
@@ -549,7 +549,7 @@ const Products = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          const newImages = formData.images.filter((_, i) => i !== index);
+                          const newImages = formData.images.filter((_: string, i: number) => i !== index);
                           setFormData({ ...formData, images: newImages });
                         }}
                         className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"

@@ -26,8 +26,8 @@ api.interceptors.response.use(
   }
 );
 
-export const getAssetUrl = (path: string | null) => {
-  if (!path) return null;
+export const getAssetUrl = (path: string | null | undefined) => {
+  if (!path) return undefined;
   if (path.startsWith('http')) return path;
   const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api').replace('/api', '');
   return baseUrl + path;
