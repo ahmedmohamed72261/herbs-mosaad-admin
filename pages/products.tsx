@@ -36,6 +36,15 @@ interface Product {
   order: number;
   image: string | null;
   images: string[] | null;
+  origin: string;
+  form: string;
+  color: string;
+  purity: string;
+  moisture: string;
+  packaging: string;
+  shelf_life: string;
+  certifications: string[];
+  export_availability: string;
 }
 
 const initialFormState = {
@@ -55,6 +64,15 @@ const initialFormState = {
   slug: '',
   image: '',
   images: [],
+  origin: '',
+  form: '',
+  color: '',
+  purity: '',
+  moisture: '',
+  packaging: '',
+  shelf_life: '',
+  certifications: [],
+  export_availability: '',
 };
 
 const Products = () => {
@@ -142,6 +160,15 @@ const Products = () => {
         slug: product.name_en ? product.name_en.toLowerCase().replace(/\s+/g, '-') : '',
         image: product.image || '',
         images: product.images || [],
+        origin: product.origin || '',
+        form: product.form || '',
+        color: product.color || '',
+        purity: product.purity || '',
+        moisture: product.moisture || '',
+        packaging: product.packaging || '',
+        shelf_life: product.shelf_life || '',
+        certifications: product.certifications || [],
+        export_availability: product.export_availability || '',
       });
     } else {
       setIsEditing(false);
@@ -296,9 +323,11 @@ const Products = () => {
                         <span className="text-sm font-semibold text-gray-900 dark:text-white">
                           {language === 'en' ? product.name_en : product.name_ar}
                         </span>
+                        {/* SKU commented out
                         <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           SKU: {product.sku || 'N/A'}
                         </span>
+                        */}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -399,6 +428,120 @@ const Products = () => {
               value={formData.short_description_ar}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, short_description_ar: e.target.value })}
             />
+
+            {/* Product Details Section */}
+            <div className="md:col-span-2">
+              <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 pb-2 border-b border-gray-200 dark:border-gray-600 uppercase tracking-wider">
+                {language === 'en' ? 'Product Specifications' : 'مواصفات المنتج'}
+              </h3>
+            </div>
+
+            <Input
+              label={t.products.origin}
+              value={formData.origin}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, origin: e.target.value })}
+            />
+
+            <Input
+              label={t.products.form}
+              value={formData.form}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, form: e.target.value })}
+            />
+
+            <Input
+              label={t.products.color}
+              value={formData.color}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, color: e.target.value })}
+            />
+
+            <Input
+              label={t.products.purity}
+              value={formData.purity}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, purity: e.target.value })}
+            />
+
+            <Input
+              label={t.products.moisture}
+              value={formData.moisture}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, moisture: e.target.value })}
+            />
+
+            <Input
+              label={t.products.packaging}
+              value={formData.packaging}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, packaging: e.target.value })}
+            />
+
+            <Input
+              label={t.products.shelfLife}
+              value={formData.shelf_life}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, shelf_life: e.target.value })}
+            />
+
+            <Input
+              label={t.products.exportAvailability}
+              value={formData.export_availability}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, export_availability: e.target.value })}
+            />
+
+            {/* Certifications */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t.products.certifications}
+              </label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {formData.certifications.map((cert: string, index: number) => (
+                  <span key={index} className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg text-xs font-medium">
+                    {cert}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newCerts = formData.certifications.filter((_: string, i: number) => i !== index);
+                        setFormData({ ...formData, certifications: newCerts });
+                      }}
+                      className="ml-1 hover:text-red-500"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  data-cert-input
+                  placeholder="Add certification..."
+                  className="flex-1 px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const input = e.target as HTMLInputElement;
+                      const value = input.value.trim();
+                      if (value && !formData.certifications.includes(value)) {
+                        setFormData({ ...formData, certifications: [...formData.certifications, value] });
+                      }
+                      input.value = '';
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const input = document.querySelector<HTMLInputElement>('[data-cert-input]');
+                    if (input) {
+                      const value = input.value.trim();
+                      if (value && !formData.certifications.includes(value)) {
+                        setFormData({ ...formData, certifications: [...formData.certifications, value] });
+                      }
+                      input.value = '';
+                    }
+                  }}
+                  className="px-4 py-3 bg-primary-600 text-white rounded-xl text-sm font-semibold hover:bg-primary-700 transition-colors"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
 
             <Input
               label={t.products.descriptionEn}

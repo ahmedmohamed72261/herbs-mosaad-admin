@@ -17,6 +17,7 @@ import {
   FiSun,
   FiMoon,
   FiGlobe,
+  FiMapPin,
 } from 'react-icons/fi';
 
 interface SidebarProps {
@@ -35,6 +36,7 @@ const Sidebar = ({ isOpen, onToggle }: SidebarProps) => {
     { href: '/products', label: t.nav.products, icon: FiPackage },
     { href: '/categories', label: t.nav.categories, icon: FiLayers },
     { href: '/team', label: t.nav.team, icon: FiUsers },
+    { href: '/export-countries', label: t.nav.exportCountries, icon: FiMapPin },
     { href: '/certificates', label: t.nav.certificates, icon: FiAward },
     { href: '/catalogs', label: t.nav.catalogs, icon: FiBook },
     { href: '/messages', label: t.nav.messages, icon: FiMail },
